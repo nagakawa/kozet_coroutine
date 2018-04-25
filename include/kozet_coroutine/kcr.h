@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#define DEFAULT_STACK_SIZE 8192
+
 typedef struct KCREntry {
   void (*callback)(void*); // The function to actually execute
   void (*tearDown)(void*); // Destructor to be called when it exits
@@ -78,9 +80,149 @@ void kcrSpawnD(
   size_t stackSize,
   void (*tearDown)(void*));
 
+KCRManager* kcrManagerGetCurrent(void);
+KCREntry* kcrEntryGetCurrent(void);
+
 #ifdef __cplusplus
 }
 // C++ wrapper code will go here
+#ifndef KCR_NO_CPP_WRAPPER
+
+#include <tuple>
+#include <utility>
+
+extern "C" void kcrTeardownNull(void* userdata);
+
+namespace kcr {
+  template<typename UD>
+  void proxyCallback(void* userdata) {
+    UD* data = (UD*) userdata;
+    auto&& callback = std::move(std::get<0>(*data));
+    std::apply(callback, std::get<2>(*data));
+  }
+  template<typename UD>
+  void proxyDestroy(void* userdata) {
+    UD* data = (UD*) userdata;
+    auto&& callback = std::move(std::get<1>(*data));
+    std::apply(callback, std::get<2>(*data));
+    delete data;
+  }
+  class Manager {
+  public:
+    class Entry {
+    public:
+      Entry(KCREntry* e) : ent(e) {}
+      KCREntry* underlying() { return ent; }
+      Entry(const KCREntry& e) = delete;
+      Entry(KCREntry&& e) = delete;
+    private:
+      KCREntry* ent;
+    };
+    Manager() : man(kcrManagerCreate()) {}
+    Manager(KCRManager* m) : man(m) {}
+    ~Manager() { if (man != nullptr) kcrManagerDestroy(man); }
+    Manager(const Manager& m) = delete;
+    Manager(Manager&& m) : man(m.man) {
+      m.man = nullptr;
+    }
+    Entry spawnRaw(
+        void (*callback)(void*),
+        void* userdata,
+        size_t stackSize = DEFAULT_STACK_SIZE,
+        void (*tearDown)(void*) = kcrTeardownNull
+    ) {
+      KCREntry* e = kcrManagerSpawnD(
+        man, callback, userdata, stackSize, tearDown);
+      return Entry(e);
+    }
+    template<typename F1, typename F2, typename... Args>
+    Entry spawn(
+        F1&& callback,
+        F2&& tearDown,
+        Args&&... args
+    ) {
+      using T = std::tuple<
+        std::decay_t<F1>,
+        std::decay_t<F2>,
+        std::tuple<std::decay_t<Args>...>
+      >;
+      T* ud = new T(
+        std::move(callback),
+        std::move(tearDown),
+        std::tuple(std::forward<Args>(args)...)
+      );
+      return spawnRaw(
+        proxyCallback<T>,
+        ud,
+        DEFAULT_STACK_SIZE,
+        proxyDestroy<T>);
+    }
+    template<typename F1, typename... Args>
+    Entry spawn(
+        F1&& callback,
+        Args&&... args
+    ) {
+      return spawn(callback, kcrTeardownNull, std::forward<Args>(args)...);
+    }
+    void enter() {
+      kcrManagerEnter(man, man->firstOccupied);
+    }
+    void enter(Entry e) {
+      kcrManagerEnter(man, e.underlying());
+    }
+    void yield(Entry e) {
+      kcrManagerYield(man, e.underlying());
+    }
+    void exit(Entry e) {
+      kcrManagerExit(man, e.underlying());
+    }
+    KCRManager* underlying() { return man; }
+  private:
+    KCRManager* man;
+  };
+  void enter() {
+    kcrEnter();
+  }
+  void exit() {
+    kcrExit();
+  }
+  void yield() {
+    kcrYield();
+  }
+  Manager getCurrentManager() {
+    return Manager(kcrManagerGetCurrent());
+  }
+  Manager::Entry getCurrentEntry() {
+    return Manager::Entry(kcrEntryGetCurrent());
+  }
+  void spawnRaw(
+      void (*callback)(void*),
+      void* userdata,
+      size_t stackSize = DEFAULT_STACK_SIZE,
+      void (*tearDown)(void*) = kcrTeardownNull
+  ) {
+    kcrSpawnD(callback, userdata, stackSize, tearDown);
+  }
+  template<typename F1, typename F2, typename... Args>
+  void spawn(
+      F1&& callback,
+      F2&& tearDown,
+      Args&&... args
+  ) {
+    getCurrentManager().spawn(
+      callback, tearDown, std::forward<Args>(args)...);
+  }
+  template<typename F1, typename... Args>
+  void spawn(
+      F1&& callback,
+      Args&&... args
+  ) {
+    getCurrentManager().spawn(
+      callback, std::forward<Args>(args)...);
+  }
+}
+
+#endif
 #endif
 
 #endif // KOZET_COROUTINE_H

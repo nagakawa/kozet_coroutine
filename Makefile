@@ -1,5 +1,5 @@
 CC=cc -Iinclude/ -I/usr/include/ --std=c11
-CPP=c++ -Iinclude/ -I/usr/include/ --std=c++14
+CPP=c++ -Iinclude/ -I/usr/include/ --std=c++17
 CFLAGS=-Wall -Werror -pedantic -Og -g
 CFLAGS_RELEASE=-Wall -Werror -pedantic -O3 -march=native
 AS=as -msyntax=intel
@@ -8,14 +8,22 @@ ASMS=src/kozet_coroutine/internal/x64/switch.s
 OBJS=$(SRCS:.c=.o)
 ASMOBJS=$(ASMS:.s=.o)
 
-all: build/test
+all: build/test build/test_cpp
 
 build/test: test/main.c \
 		build/libkozet_coroutine.a \
 		include/kozet_coroutine/kcr.h
 	@mkdir -p build
-	@echo -e '\e[33mCompiling test program...\e[0m'
+	@echo -e '\e[33mCompiling build/test...\e[0m'
 	@$(CC) test/main.c build/libkozet_coroutine.a -o build/test $(CFLAGS)
+	@echo -e '\e[32mDone!\e[0m'
+
+build/test_cpp: test/main.cpp \
+		build/libkozet_coroutine.a \
+		include/kozet_coroutine/kcr.h
+	@mkdir -p build
+	@echo -e '\e[33mCompiling build/test_cpp...\e[0m'
+	@$(CPP) test/main.cpp build/libkozet_coroutine.a -o build/test_cpp $(CFLAGS)
 	@echo -e '\e[32mDone!\e[0m'
 
 build/libkozet_coroutine.a: $(OBJS) $(ASMOBJS)

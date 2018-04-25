@@ -10,7 +10,7 @@ won't work on Windows as is. (Modifying the library is left to the reader
 as an exercise.)
 
 C11 is required to build the library itself. The header can be included
-under C99 or later, or under C++11 or later.
+under C99 or later, or under C++17 or later.
 
 ### Building
 
@@ -19,6 +19,8 @@ test program (`build/test`). The header file is at
 `include/kozet_coroutine/kcr.h`.
 
 ### Usage
+
+Consult `test/main.c` for an example.
 
 Include the header file:
 
@@ -89,6 +91,57 @@ Building the library with the `KCR_MULTITHREADED` flag will make certain
 internal variables thread-local as to preserve reëntrancy. **Note that this
 *does not* mean that you can share KCRManagers across multiple threads
 without locking!**
+
+#### But key, I use C++!
+
+No worries!
+
+If you include the `kcr.h` header when compiling C++ and you don't have
+`KCR_NO_CPP_WRAPPER` `#define`'d, then you'll get a C++ wrapper. The C++
+interface is under the `kcr` namespace.
+
+`Manager` is a wrapper around `KCRManager*`. Similarly, `Manager::Entry`
+wraps `KCREntry`. `Manager` is a move-only type; `Manager::Entry` can
+be neither copied nor moved. You can get the underlying types of both
+classes using the `underlying()` method.
+
+##### Manager
+
+    // equivalent of kcrManagerSpawnD
+    Entry spawnRaw(
+        void (*callback)(void*),
+        void* userdata,
+        size_t stackSize = DEFAULT_STACK_SIZE,
+        void (*tearDown)(void*) = kcrTeardownNull
+    );
+    // C++ified version with explicit tearDown
+    template<typename F1, typename F2, typename... Args>
+    Entry spawn(
+        F1&& callback,
+        F2&& tearDown,
+        Args&&... args
+    );
+    // C++ified version without explicit tearDown
+    template<typename F1, typename... Args>
+    Entry spawn(
+        F1&& callback,
+        Args&&... args
+    );
+    void enter(Entry e);
+    // enters the current coroutine
+    void enter();
+    void yield(Entry e);
+    void exit(Entry e);
+
+These methods also have equivalents directly in the `kcr` namespace that
+work on the current `Manager` and `Entry`, similar to the C functions without
+a `kcrManager` prefix, but the `spawn` and `spawnRaw` free functions return
+`void`.
+
+Consult `test/main.cpp` for an example.
+
+(Right now, C++17 is required. I might make the wrapper work for earlier
+C++ standards later.)
 
 ### Licence
 

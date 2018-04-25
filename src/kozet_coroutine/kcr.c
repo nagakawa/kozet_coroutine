@@ -40,6 +40,13 @@
 static THREADLOCAL KCRManager* currentKCRManager = 0;
 static THREADLOCAL KCREntry* currentKCREntry = 0;
 
+KCRManager* kcrManagerGetCurrent(void) {
+  return currentKCRManager;
+}
+KCREntry* kcrEntryGetCurrent(void) {
+  return currentKCREntry;
+}
+
 static bool inBounds(KCRManager* manager, KCREntry* entry) {
   return entry < manager->queue + manager->size;
 }
