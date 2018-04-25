@@ -73,6 +73,10 @@ static void freeStack(void* stack, size_t stackSize) {
 #endif
 
 void kcrReturnFromCoroutine(void);
+void kcrTeardownNull(void* userdata) {
+  // Nothing
+  (void) userdata;
+}
 
 void* kcrSetUpStack(
   void* base,
@@ -121,12 +125,17 @@ static void debugPrintFreeList(KCRManager* man) {
 }
 */
 
+void kcrEntryDestroy(KCREntry* entry) {
+  freeStack(entry->stack, entry->stackSize);
+  entry->tearDown(entry->userdata);
+}
+
 static void freeStacksOfOccupiedEntries(KCRManager* man) {
   KCREntry* e = man->firstOccupied;
   if (e == 0) return;
   KCREntry* f = e;
   do {
-    freeStack(e->stack, e->stackSize);
+    kcrEntryDestroy(e);
     e = e->next;
   } while (e != f);
 }
@@ -220,7 +229,7 @@ static KCREntry* kcrManagerAddEntry(KCRManager* manager, KCREntry* node) {
 
 void kcrManagerFreeEntry(KCRManager* manager, KCREntry* node) {
   // Do cleanup
-  freeStack(node->stack, node->stackSize);
+  kcrEntryDestroy(node);
   // Remove from occupied list
   if (node == node->next) {
     // Last node in list; delete altogether
@@ -291,11 +300,12 @@ void kcrManagerFreeEntry(KCRManager* manager, KCREntry* node) {
   }
 }
 
-KCREntry* kcrManagerSpawn(
+KCREntry* kcrManagerSpawnD(
     KCRManager* manager,
     void (*callback)(void*),
     void* userdata,
-    size_t stackSize) {
+    size_t stackSize,
+    void (*tearDown)(void*)) {
   KCREntry* e = kcrManagerAddEntry(
     manager,
     manager->firstOccupied ? manager->firstOccupied->next : 0
@@ -305,7 +315,22 @@ KCREntry* kcrManagerSpawn(
   e->stackSize = stackSize;
   e->stack = allocateStack(stackSize);
   e->stackPointer = kcrSetUpStack(e->stack, e->callback, e->userdata);
+  e->tearDown = tearDown;
   return e;
+}
+
+
+KCREntry* kcrManagerSpawn(
+    KCRManager* manager,
+    void (*callback)(void*),
+    void* userdata,
+    size_t stackSize) {
+  return kcrManagerSpawnD(
+    manager,
+    callback,
+    userdata,
+    stackSize,
+    kcrTeardownNull);
 }
 
 void kcrManagerExit(KCRManager* manager, KCREntry* node) {
@@ -370,4 +395,13 @@ void kcrSpawn(
     void* userdata,
     size_t stackSize) {
   kcrManagerSpawn(currentKCRManager, callback, userdata, stackSize);
+}
+
+void kcrSpawnD(
+    void (*callback)(void*),
+    void* userdata,
+    size_t stackSize,
+    void (*tearDown)(void*)) {
+  kcrManagerSpawnD(
+    currentKCRManager, callback, userdata, stackSize, tearDown);
 }

@@ -43,11 +43,24 @@ KCREntry corresponding to the current coroutine.
       void (*callback)(void*),
       void* userdata,
       size_t stackSize);
+    // Like the above, but when the coroutine exits, tearDown is called
+    // on userdata
+    KCREntry* kcrManagerSpawnD(
+      KCRManager* manager,
+      void (*callback)(void*),
+      void* userdata,
+      size_t stackSize,
+      void (*tearDown)(void*));
     // Like the above, but to be called inside a coroutine
     void      kcrSpawn(
       void (*callback)(void*),
       void* userdata,
       size_t stackSize);
+    void      kcrSpawnD(
+      void (*callback)(void*),
+      void* userdata,
+      size_t stackSize,
+      void (*tearDown)(void*));
 
 Creates a new coroutine to be executed immediately after the current one
 (if any). `userdata` is the void pointer you want passed into `callback`.

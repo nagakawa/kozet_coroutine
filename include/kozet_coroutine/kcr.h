@@ -26,6 +26,7 @@ extern "C" {
 
 typedef struct KCREntry {
   void (*callback)(void*); // The function to actually execute
+  void (*tearDown)(void*); // Destructor to be called when it exits
   void* userdata; // Some data to pass to the function
   void* stack; // Stack base
   size_t stackSize; // Stack size
@@ -53,6 +54,12 @@ KCREntry* kcrManagerSpawn(
   void (*callback)(void*),
   void* userdata,
   size_t stackSize);
+KCREntry* kcrManagerSpawnD(
+  KCRManager* manager,
+  void (*callback)(void*),
+  void* userdata,
+  size_t stackSize,
+  void (*tearDown)(void*));
 void kcrManagerFreeEntry(KCRManager* manager, KCREntry* node);
 void kcrManagerEnter(KCRManager* manager, KCREntry* node);
 void kcrManagerExit(KCRManager* manager, KCREntry* node);
@@ -65,6 +72,11 @@ void kcrSpawn(
   void (*callback)(void*),
   void* userdata,
   size_t stackSize);
+void kcrSpawnD(
+  void (*callback)(void*),
+  void* userdata,
+  size_t stackSize,
+  void (*tearDown)(void*));
 
 #ifdef __cplusplus
 }
