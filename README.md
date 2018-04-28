@@ -5,9 +5,8 @@ A nice coroutine library with x64 assembly voodoo.
 ### Compatibility
 
 Currently, the library assumes that you have an x86-64 processor and your
-compiler uses the System V AMD64 ABI, which means that the library probably
-won't work on Windows as is. (Modifying the library is left to the reader
-as an exercise.)
+compiler uses either the System V or the Microsoft calling conventions.
+It's probably straightforward to extend this to other architectures.
 
 C11 is required to build the library itself. The header can be included
 under C99 or later, or under C++17 or later.

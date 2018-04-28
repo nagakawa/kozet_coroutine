@@ -25,7 +25,7 @@ $(BUILD_DIR)/test: test/main.c \
 $(BUILD_DIR)/test_cpp: test/main.cpp \
 		$(BUILD_DIR)/libkozet_coroutine.a \
 		include/kozet_coroutine/kcr.h
-	@mkdir -p build
+	@mkdir -p $(BUILD_DIR)
 	@echo -e '\e[33mCompiling $(BUILD_DIR)/test_cpp...\e[0m'
 	@$(CPP) test/main.cpp $(BUILD_DIR)/libkozet_coroutine.a -o $(BUILD_DIR)/test_cpp $(CFLAGS)
 	@echo -e '\e[32mDone!\e[0m'
