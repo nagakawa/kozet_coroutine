@@ -20,6 +20,7 @@ void* kcrSetUpStack(void* base, void* returnAddress, void* userdata) {
   void** baseOfPointers = (void**) base;
   baseOfPointers[-1] = (void*) &kcrReturnFromCoroutine;
   baseOfPointers[-2] = returnAddress; // return address
-  baseOfPointers[-4] = userdata;
-  return baseOfPointers - 17; // 2 return addresses + 15 registers saved to stack
+  baseOfPointers[-3] = userdata;
+  // 2 return addresses + 7 registers saved to stack
+  return baseOfPointers - 9;
 }

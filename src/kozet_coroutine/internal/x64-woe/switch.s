@@ -22,18 +22,14 @@ contextSwitch:
   # rcx = where to stash the old stack pointer
   # rdx = stack pointer to switch to
   # Saved stack pointer locations point to the last entry on the stack.
-  # Save all registers on stack
-  push rax
-  push rdi
+  # Save all callee-saved registers on stack, plus rcx
+  # (because we want the coroutine to get it as the userdata argument)
+  # (rsp doesn't need to be saved; it is stored elsewhere)
   push rcx
-  push rdx
   push rbx
   push rbp
+  push rdi
   push rsi
-  push r8
-  push r9
-  push r10
-  push r11
   push r12
   push r13
   push r14
@@ -47,15 +43,9 @@ contextSwitch:
   pop r14
   pop r13
   pop r12
-  pop r11
-  pop r10
-  pop r9
-  pop r8
   pop rsi
+  pop rdi
   pop rbp
   pop rbx
-  pop rdx
   pop rcx
-  pop rdi
-  pop rax
   ret

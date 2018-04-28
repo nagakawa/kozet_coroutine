@@ -22,18 +22,11 @@ contextSwitch:
   # rdi = where to stash the old stack pointer
   # rsi = stack pointer to switch to
   # Saved stack pointer locations point to the last entry on the stack.
-  # Save all registers on stack
-  push rax
+  # Save all callee-preserved registers on stack, plus rdi
+  # (because we want the coroutine to get it as the userdata argument)
   push rdi
-  push rcx
-  push rdx
-  push rbx
   push rbp
-  push rsi
-  push r8
-  push r9
-  push r10
-  push r11
+  push rbx
   push r12
   push r13
   push r14
@@ -47,15 +40,7 @@ contextSwitch:
   pop r14
   pop r13
   pop r12
-  pop r11
-  pop r10
-  pop r9
-  pop r8
-  pop rsi
-  pop rbp
   pop rbx
-  pop rdx
-  pop rcx
+  pop rbp
   pop rdi
-  pop rax
   ret
