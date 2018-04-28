@@ -94,17 +94,26 @@ KCREntry* kcrEntryGetCurrent(void);
 extern "C" void kcrTeardownNull(void* userdata);
 
 namespace kcr {
+  template<typename F, typename T, size_t... I>
+  auto apply2(F&& f, T&& t, std::index_sequence<I...> seq) {
+    return f(std::get<I>(t)...);
+  }
+  template<typename F, typename T>
+  auto apply(F&& f, T&& t) {
+    return apply2(f, t,
+      std::make_index_sequence<std::tuple_size<T>::value>());
+  }
   template<typename UD>
   void proxyCallback(void* userdata) {
     UD* data = (UD*) userdata;
     auto&& callback = std::move(std::get<0>(*data));
-    std::apply(callback, std::get<2>(*data));
+    apply(callback, std::move(std::get<2>(*data)));
   }
   template<typename UD>
   void proxyDestroy(void* userdata) {
     UD* data = (UD*) userdata;
     auto&& callback = std::move(std::get<1>(*data));
-    std::apply(callback, std::get<2>(*data));
+    apply(callback, std::move(std::get<2>(*data)));
     delete data;
   }
   class Manager {
@@ -149,7 +158,7 @@ namespace kcr {
       T* ud = new T(
         std::move(callback),
         std::move(tearDown),
-        std::tuple(std::forward<Args>(args)...)
+        std::tuple<std::decay_t<Args>...>(std::forward<Args>(args)...)
       );
       return spawnRaw(
         proxyCallback<T>,

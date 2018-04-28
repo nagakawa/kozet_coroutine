@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -161,7 +162,7 @@ static KCREntry* kcrManagerGetFreeEntry(KCRManager* manager, KCREntry** node) {
     // No free space left; double capacity
     manager->queue = (KCREntry*) realloc(
       manager->queue, 2 * manager->size * sizeof(KCREntry));
-    off_t offset = (char*) manager->queue - (char*) q;
+    intptr_t offset = (char*) manager->queue - (char*) q;
     for (size_t i = manager->size; i < 2 * manager->size; ++i) {
       manager->queue[i].size = 0; // Prevent erroneous coälescing
       manager->queue[i].sizePrev = 0;
