@@ -1,7 +1,8 @@
 CC=cc -Iinclude/ -I/usr/include/ --std=c11
 CPP=c++ -Iinclude/ -I/usr/include/ --std=c++14
-CFLAGS=-Wall -Werror -pedantic -Og -g
+CFLAGS_DEBUG=-Wall -Werror -pedantic -Og -g
 CFLAGS_RELEASE=-Wall -Werror -pedantic -O3 -march=native
+CFLAGS=$(CFLAGS_RELEASE)
 AS=as -msyntax=intel
 SRCS=src/kozet_coroutine/kcr.c src/kozet_coroutine/internal/x64/stackinit.c
 ASMS=src/kozet_coroutine/internal/x64/switch.s

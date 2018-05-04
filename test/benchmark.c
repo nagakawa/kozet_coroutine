@@ -33,13 +33,19 @@ int main(int argc, char** argv) {
   for (size_t i = 0; i < nDummies; ++i) {
     kcrManagerSpawn(man, dummy, 0, 8192);
   }
+  clock_t cl2 = clock();
   kcrManagerSpawn(man, intercepter, &iters, 8192);
   kcrManagerEnter(man, 0);
-  clock_t cl2 = clock();
-  double t = (double) (cl2 - cl) / CLOCKS_PER_SEC;
+  clock_t cl3 = clock();
+  double t1 = (double) (cl2 - cl) / CLOCKS_PER_SEC;
+  double t2 = (double) (cl3 - cl2) / CLOCKS_PER_SEC;
+  printf(
+    "Took %f seconds to spawn the coroutines, or %f ns per coroutine\n",
+    t1, t1 / nDummies * 1e9
+  );
   printf(
     "Took %f seconds, or %f ns per iteration per dummy coroutine\n",
-    t, t / iters / nDummies * 1e9
+    t2, t2 / iters / nDummies * 1e9
   );
   kcrManagerDestroy(man);
 }

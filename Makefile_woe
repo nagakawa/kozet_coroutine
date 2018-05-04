@@ -1,7 +1,8 @@
 CC=x86_64-w64-mingw32-gcc -Iinclude/ -I/usr/share/mingw-w64/include/ --std=c11
 CPP=x86_64-w64-mingw32-g++ -Iinclude/ -I/usr/share/mingw-w64/include/ --std=c++14
-CFLAGS=-Wall -Werror -pedantic -Og -g
+CFLAGS_DEBUG=-Wall -Werror -pedantic -Og -g
 CFLAGS_RELEASE=-Wall -Werror -pedantic -O3 -march=native
+CFLAGS=$(CFLAGS_RELEASE)
 AS=x86_64-w64-mingw32-as -msyntax=intel
 SRCS=src/kozet_coroutine/kcr.c src/kozet_coroutine/internal/x64-woe/stackinit.c
 ASMS=src/kozet_coroutine/internal/x64-woe/switch.s
