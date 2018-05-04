@@ -12,14 +12,24 @@ ASMOBJS=$(addprefix $(BUILD_TEMP_DIR)/,$(ASMS:.s=.o))
 
 all: bestos
 
-bestos: $(BUILD_DIR)/test $(BUILD_DIR)/test_cpp
+bestos: $(BUILD_DIR)/test $(BUILD_DIR)/test_cpp $(BUILD_DIR)/test_benchmark
 
 $(BUILD_DIR)/test: test/main.c \
 		$(BUILD_DIR)/libkozet_coroutine.a \
 		include/kozet_coroutine/kcr.h
 	@mkdir -p $(BUILD_DIR)
 	@echo -e '\e[33mCompiling $(BUILD_DIR)/test...\e[0m'
-	@$(CC) test/main.c $(BUILD_DIR)/libkozet_coroutine.a -o build/test $(CFLAGS)
+	@$(CC) test/main.c $(BUILD_DIR)/libkozet_coroutine.a \
+		-o $(BUILD_DIR)/test $(CFLAGS)
+	@echo -e '\e[32mDone!\e[0m'
+
+$(BUILD_DIR)/test_benchmark: test/benchmark.c \
+		$(BUILD_DIR)/libkozet_coroutine.a \
+		include/kozet_coroutine/kcr.h
+	@mkdir -p $(BUILD_DIR)
+	@echo -e '\e[33mCompiling $(BUILD_DIR)/test_benchmark...\e[0m'
+	@$(CC) test/benchmark.c $(BUILD_DIR)/libkozet_coroutine.a \
+		-o $(BUILD_DIR)/test_benchmark $(CFLAGS)
 	@echo -e '\e[32mDone!\e[0m'
 
 $(BUILD_DIR)/test_cpp: test/main.cpp \

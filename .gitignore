@@ -1,3 +1,4 @@
 *.o
 build/
 *.d
+oprofile_data/
