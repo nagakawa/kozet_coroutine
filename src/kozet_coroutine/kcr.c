@@ -368,10 +368,14 @@ void kcrReturnFromCoroutine(void) {
 void kcrManagerEnter(KCRManager* manager, KCREntry* node) {
   if (node == 0) node = manager->firstOccupied;
   // Set global vars for use inside coroutines
+  KCRManager* oldKCRManager = currentKCRManager;
+  KCREntry* oldKCREntry = currentKCREntry;
   currentKCRManager = manager;
   currentKCREntry = node;
   // Switch stacks
   contextSwitch(&(manager->outsideStackPointer), node->stackPointer);
+  currentKCRManager = oldKCRManager;
+  currentKCREntry = oldKCREntry;
 }
 
 void kcrManagerYield(KCRManager* manager, KCREntry* node) {
