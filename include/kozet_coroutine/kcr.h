@@ -18,6 +18,7 @@
 #ifndef KOZET_COROUTINE_H
 #define KOZET_COROUTINE_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
@@ -46,6 +47,7 @@ typedef struct KCRManager {
   KCREntry* firstFree;
   size_t size;
   void* outsideStackPointer;
+  bool advanceOnExit;
 } KCRManager;
 
 KCRManager* kcrManagerCreate(void);
@@ -96,6 +98,7 @@ extern "C" void kcrTeardownNull(void* userdata);
 namespace kcr {
   template<typename F, typename T, size_t... I>
   auto apply2(F&& f, T&& t, std::index_sequence<I...> seq) {
+    (void) seq;
     return f(std::get<I>(t)...);
   }
   template<typename F, typename T>
@@ -171,7 +174,10 @@ namespace kcr {
         F1&& callback,
         Args&&... args
     ) {
-      return spawn(callback, kcrTeardownNull, std::forward<Args>(args)...);
+      return spawn(
+        callback,
+        [](const Args&... /*args*/) { },
+        std::forward<Args>(args)...);
     }
     void enter() {
       kcrManagerEnter(man, man->firstOccupied);
@@ -184,6 +190,9 @@ namespace kcr {
     }
     void exit(Entry e) {
       kcrManagerExit(man, e.underlying());
+    }
+    void setAdvanceOnExit(bool e) {
+      man->advanceOnExit = e;
     }
     KCRManager* underlying() { return man; }
   private:

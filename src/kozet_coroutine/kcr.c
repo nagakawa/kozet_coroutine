@@ -106,6 +106,7 @@ KCRManager* kcrManagerCreate(void) {
     manager->queue[i].size = 0; // Prevent erroneous coälescing
     manager->queue[i].sizePrev = 0;
   }
+  manager->advanceOnExit = true;
   return manager;
 }
 
@@ -343,7 +344,7 @@ KCREntry* kcrManagerSpawn(
 
 void kcrManagerExit(KCRManager* manager, KCREntry* node) {
   // Prepare to enter next coroutine (if any)
-  if (manager->firstOccupied != 0) {
+  if (manager->firstOccupied != 0 && manager->advanceOnExit) {
     manager->firstOccupied = manager->firstOccupied->next;
   }
   contextSwitch(&(node->stackPointer), manager->outsideStackPointer);
