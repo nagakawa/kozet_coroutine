@@ -198,22 +198,22 @@ namespace kcr {
   private:
     KCRManager* man;
   };
-  void enter() {
+  inline void enter() {
     kcrEnter();
   }
-  void exit() {
+  inline void exit() {
     kcrExit();
   }
-  void yield() {
+  inline void yield() {
     kcrYield();
   }
-  Manager getCurrentManager() {
+  inline Manager getCurrentManager() {
     return Manager(kcrManagerGetCurrent());
   }
-  Manager::Entry getCurrentEntry() {
+  inline Manager::Entry getCurrentEntry() {
     return Manager::Entry(kcrEntryGetCurrent());
   }
-  void spawnRaw(
+  inline void spawnRaw(
       void (*callback)(void*),
       void* userdata,
       size_t stackSize = DEFAULT_STACK_SIZE,
@@ -222,7 +222,7 @@ namespace kcr {
     kcrSpawnD(callback, userdata, stackSize, tearDown);
   }
   template<typename F1, typename F2, typename... Args>
-  void spawn(
+  inline void spawn(
       F1&& callback,
       F2&& tearDown,
       Args&&... args
@@ -231,7 +231,7 @@ namespace kcr {
       callback, tearDown, std::forward<Args>(args)...);
   }
   template<typename F1, typename... Args>
-  void spawn(
+  inline void spawn(
       F1&& callback,
       Args&&... args
   ) {
